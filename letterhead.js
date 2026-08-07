@@ -311,32 +311,41 @@ document.addEventListener('DOMContentLoaded', () => {
       topToolbarContainer.appendChild(qlToolbar);
     }
 
-    // Populate Initial Letter Template
-    window.quill.root.innerHTML = `
-      <p><strong>To,</strong></p>
-      <p><strong>Mr. Alex Turner</strong></p>
-      <p>Chief Executive Officer</p>
-      <p>Apex Global Innovations Ltd.</p>
-      <p>Bengaluru, Karnataka</p>
-      <p><br></p>
-      <p><strong>Subject: Formal Proposal & Corporate Partnership Engagement</strong></p>
-      <p><br></p>
-      <p>Dear Mr. Turner,</p>
-      <p><br></p>
-      <p>I hope this message finds you well. I am writing on behalf of Trescon Global to submit our comprehensive proposal for the upcoming enterprise technology summit and strategic collaboration initiatives. Our team has tailored this framework to align with your organization's vision, key deliverables, and expansion roadmaps.</p>
-      <p>As a premier B2B events and business solutions firm operating across seven global territories, Trescon is committed to connecting businesses with high-impact market opportunities. The enclosed document details our execution timeline, stakeholder engagement models, and target milestones for optimal business outcome.</p>
-      <p><br></p>
-      <p>Warm regards,</p>
-      <p><br></p>
-      <p><strong>Mohammed Saleem</strong></p>
-      <p>Founder & Chairman</p>
-      <p>Trescon Global Business Solutions Pvt. Ltd.</p>
-    `;
+    // Populate Editor (Load saved draft if available, otherwise load default template)
+    const savedDraft = localStorage.getItem('trescon_letterhead_draft');
+    if (savedDraft) {
+      window.quill.root.innerHTML = savedDraft;
+    } else {
+      window.quill.root.innerHTML = `
+        <p><strong>To,</strong></p>
+        <p><strong>Mr. Alex Turner</strong></p>
+        <p>Chief Executive Officer</p>
+        <p>Apex Global Innovations Ltd.</p>
+        <p>Bengaluru, Karnataka</p>
+        <p><br></p>
+        <p><strong>Subject: Formal Proposal & Corporate Partnership Engagement</strong></p>
+        <p><br></p>
+        <p>Dear Mr. Turner,</p>
+        <p><br></p>
+        <p>I hope this message finds you well. I am writing on behalf of Trescon Global to submit our comprehensive proposal for the upcoming enterprise technology summit and strategic collaboration initiatives. Our team has tailored this framework to align with your organization's vision, key deliverables, and expansion roadmaps.</p>
+        <p>As a premier B2B events and business solutions firm operating across seven global territories, Trescon is committed to connecting businesses with high-impact market opportunities. The enclosed document details our execution timeline, stakeholder engagement models, and target milestones for optimal business outcome.</p>
+        <p><br></p>
+        <p>Warm regards,</p>
+        <p><br></p>
+        <p><strong>Mohammed Saleem</strong></p>
+        <p>Founder & Chairman</p>
+        <p>Trescon Global Business Solutions Pvt. Ltd.</p>
+      `;
+    }
 
     // Verify overflow on load and hook inside Quill text-change listener
     if (window.checkOverflow) {
       window.checkOverflow();
-      window.quill.on('text-change', window.checkOverflow);
+      window.quill.on('text-change', () => {
+        window.checkOverflow();
+        // Autosave draft to localStorage
+        localStorage.setItem('trescon_letterhead_draft', window.quill.root.innerHTML);
+      });
     }
   }
 
