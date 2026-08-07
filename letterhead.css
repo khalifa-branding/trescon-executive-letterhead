@@ -1097,6 +1097,44 @@ img.letterhead-logo,
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+/* Letterhead Body Margin Presets */
+.a4-sheet.margins-normal .letter-body {
+  padding-top: 20px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+}
+
+.a4-sheet.margins-compact .letter-body {
+  padding-top: 8px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.a4-sheet.margins-wide .letter-body {
+  padding-top: 36px !important;
+  padding-left: 36px !important;
+  padding-right: 36px !important;
+}
+
+/* Symmetrical Preview Mode Style Overrides */
+.preview-active .ql-editor {
+  caret-color: transparent !important;
+}
+
+.preview-active .ql-tooltip {
+  display: none !important;
+}
+
+.preview-active #editor-top-toolbar {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide styling handles or lines in preview */
+.preview-active .ql-editor:focus {
+  outline: none !important;
+}
+
 /* --------------------------------------------------------------------------
    PRINT STYLES (@media print)
    -------------------------------------------------------------------------- */

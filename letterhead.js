@@ -63,6 +63,22 @@ window.updateFooter = function() {
   if (webElem) webElem.textContent = data.web;
 };
 
+// Update Sheet Margin Styles (Admin Setting)
+window.updateMargins = function() {
+  const selectElem = document.getElementById('margins-preset');
+  const sheet = document.getElementById('letterhead-sheet');
+  if (!selectElem || !sheet) return;
+
+  const selectedValue = selectElem.value;
+  
+  // Remove all margin classes
+  sheet.classList.remove('margins-normal', 'margins-compact', 'margins-wide');
+  sheet.classList.add(`margins-${selectedValue}`);
+  
+  // Persist in localStorage so users/writers get the admin margin layout by default
+  localStorage.setItem('trescon_letterhead_margins', selectedValue);
+};
+
 // Toggle Watermark Overlay (Admin Setting)
 window.toggleWatermark = function() {
   const toggle = document.getElementById('watermark-toggle');
@@ -72,6 +88,23 @@ window.toggleWatermark = function() {
     watermark.style.display = 'block';
   } else {
     watermark.style.display = 'none';
+  }
+};
+
+// Toggle Symmetrical Preview Mode (Hides formatting toolbar & sets editor to read-only)
+window.togglePreviewMode = function() {
+  const body = document.body;
+  const btnText = document.getElementById('preview-btn-text');
+  if (!window.quill) return;
+
+  const isPreview = body.classList.toggle('preview-active');
+  
+  if (isPreview) {
+    window.quill.enable(false); // set editor to read-only
+    if (btnText) btnText.textContent = "Edit Letter";
+  } else {
+    window.quill.enable(true); // set editor back to editable
+    if (btnText) btnText.textContent = "Preview";
   }
 };
 
@@ -129,12 +162,15 @@ window.exportToPdf = function() {
   const selectElem = document.getElementById('office-preset');
   const selectedKey = selectElem ? selectElem.value : 'bangalore';
 
-  // Temporarily reset CSS transform scaling to ensure pixel-perfect 1:1 html2canvas resolution
-  const originalTransform = element.style.transform;
-  const originalWidth = element.style.width;
-  const originalHeight = element.style.height;
-  const originalMargin = element.style.margin;
+  // Force clean preview view during export
+  const body = document.body;
+  const originalPreviewState = body.classList.contains('preview-active');
+  if (!originalPreviewState) {
+    body.classList.add('preview-active');
+    if (window.quill) window.quill.enable(false);
+  }
 
+  // Temporarily reset CSS transform scaling to ensure pixel-perfect 1:1 html2canvas resolution
   element.style.transform = 'none';
   element.style.width = '210mm';
   element.style.height = '297mm';
@@ -156,7 +192,11 @@ window.exportToPdf = function() {
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    // Restore scaling auto-fit logic
+    // Restore layout states
+    if (!originalPreviewState) {
+      body.classList.remove('preview-active');
+      if (window.quill) window.quill.enable(true);
+    }
     if (window.autoFitCanvas) {
       window.autoFitCanvas();
     }
@@ -192,6 +232,18 @@ document.addEventListener('DOMContentLoaded', () => {
       sidebar.style.display = 'none';
       sidebar.style.marginLeft = '-300px';
     }
+  }
+
+  // Load Saved Page Margins from localStorage
+  const savedMargins = localStorage.getItem('trescon_letterhead_margins') || 'normal';
+  const sheet = document.getElementById('letterhead-sheet');
+  const marginsSelector = document.getElementById('margins-preset');
+  if (sheet) {
+    sheet.classList.remove('margins-normal', 'margins-compact', 'margins-wide');
+    sheet.classList.add(`margins-${savedMargins}`);
+  }
+  if (marginsSelector) {
+    marginsSelector.value = savedMargins;
   }
 
   // Initialize Quill Editor inside the A4 canvas sheet
