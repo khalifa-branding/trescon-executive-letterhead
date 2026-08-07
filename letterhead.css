@@ -1027,36 +1027,74 @@ img.letterhead-logo,
   padding: 0 !important;
 }
 
-/* Sidebar Toolbar Custom Styling */
-#editor-sidebar-toolbar .ql-toolbar.ql-snow {
+/* Top Navigation Bar Toolbar Custom Styling overrides */
+#editor-top-toolbar .ql-toolbar.ql-snow {
   border: none !important;
   background: #16202c !important;
-  padding: 10px !important;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  align-items: center !important;
 }
 
-#editor-sidebar-toolbar .ql-snow .ql-stroke {
+#editor-top-toolbar .ql-snow .ql-stroke {
   stroke: #cbd5e1 !important;
 }
 
-#editor-sidebar-toolbar .ql-snow .ql-fill {
+#editor-top-toolbar .ql-snow .ql-fill {
   fill: #cbd5e1 !important;
 }
 
-#editor-sidebar-toolbar .ql-snow .ql-picker {
+#editor-top-toolbar .ql-snow .ql-picker {
   color: #cbd5e1 !important;
 }
 
-#editor-sidebar-toolbar .ql-snow.ql-toolbar button:hover .ql-stroke,
-#editor-sidebar-toolbar .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+#editor-top-toolbar .ql-snow.ql-toolbar button:hover .ql-stroke,
+#editor-top-toolbar .ql-snow.ql-toolbar button.ql-active .ql-stroke {
   stroke: var(--trescon-teal) !important;
 }
 
-#editor-sidebar-toolbar .ql-snow.ql-toolbar button:hover .ql-fill,
-#editor-sidebar-toolbar .ql-snow.ql-toolbar button.ql-active .ql-fill {
+#editor-top-toolbar .ql-snow.ql-toolbar button:hover .ql-fill,
+#editor-top-toolbar .ql-snow.ql-toolbar button.ql-active .ql-fill {
   fill: var(--trescon-teal) !important;
+}
+
+#editor-top-toolbar .ql-snow .ql-picker-options {
+  background-color: #16202c !important;
+  border: 1px solid #2d3748 !important;
+}
+
+#editor-top-toolbar .ql-snow .ql-picker-item {
+  color: #cbd5e1 !important;
+}
+
+#editor-top-toolbar .ql-snow .ql-picker-item:hover,
+#editor-top-toolbar .ql-snow .ql-picker-item.ql-selected {
+  color: var(--trescon-teal) !important;
+}
+
+/* Role-based Visibility Rules */
+.role-user #admin-sidebar {
+  display: none !important;
+}
+
+.role-user #btn-admin-toggle {
+  display: none !important;
+}
+
+.role-admin #admin-sidebar {
+  display: flex !important;
+}
+
+.role-admin #btn-admin-toggle {
+  display: inline-flex !important;
+}
+
+/* Collapsible transition styling */
+#admin-sidebar {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -1077,7 +1115,9 @@ img.letterhead-logo,
 
   .no-print,
   .sidebar,
-  .sidebar-form {
+  .sidebar-form,
+  #admin-sidebar,
+  .studio-top-navbar {
     display: none !important;
   }
 

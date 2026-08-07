@@ -63,6 +63,66 @@ window.updateFooter = function() {
   if (webElem) webElem.textContent = data.web;
 };
 
+// Toggle Watermark Overlay (Admin Setting)
+window.toggleWatermark = function() {
+  const toggle = document.getElementById('watermark-toggle');
+  const watermark = document.getElementById('watermark-logo-overlay');
+  if (!toggle || !watermark) return;
+  if (toggle.checked) {
+    watermark.style.display = 'block';
+  } else {
+    watermark.style.display = 'none';
+  }
+};
+
+// Inject Signature Preset Block at Cursor or End of Document
+window.injectSignature = function(preset) {
+  if (!window.quill) return;
+  
+  let sigHtml = '';
+  if (preset === 'chairman') {
+    sigHtml = `
+      <p><br></p>
+      <p>Warm regards,</p>
+      <p><br></p>
+      <p><strong>Mohammed Saleem</strong></p>
+      <p>Founder & Chairman</p>
+      <p>Trescon Global Business Solutions Pvt. Ltd.</p>
+    `;
+  } else if (preset === 'ceo') {
+    sigHtml = `
+      <p><br></p>
+      <p>Sincerely yours,</p>
+      <p><br></p>
+      <p><strong>Sandeep Bahl</strong></p>
+      <p>Chief Executive Officer</p>
+      <p>Trescon Global Business Solutions Pvt. Ltd.</p>
+    `;
+  }
+
+  // Append preset HTML block safely to Quill editor contents
+  const currentHtml = window.quill.root.innerHTML;
+  window.quill.root.innerHTML = currentHtml + sigHtml;
+  window.quill.focus();
+};
+
+// Toggle Admin Sidebar panel view
+window.toggleAdminSidebar = function() {
+  const sidebar = document.getElementById('admin-sidebar');
+  if (!sidebar) return;
+  
+  if (sidebar.style.marginLeft === '0px' || sidebar.style.marginLeft === '') {
+    sidebar.style.marginLeft = '-300px';
+  } else {
+    sidebar.style.marginLeft = '0px';
+  }
+  
+  // Re-fit canvas layout scaling after transition animation finishes
+  setTimeout(() => {
+    if (window.autoFitCanvas) window.autoFitCanvas();
+  }, 310);
+};
+
 // Export A4 sheet directly to high-fidelity PDF via html2pdf
 window.exportToPdf = function() {
   const element = document.getElementById('letterhead-sheet');
@@ -110,6 +170,30 @@ window.printDocument = function() {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // Role-Based Access Engine Configuration
+  const urlParams = new URLSearchParams(window.location.search);
+  const isAdmin = urlParams.has('admin') || urlParams.get('role') === 'admin';
+  const body = document.body;
+
+  if (isAdmin) {
+    body.classList.remove('role-user');
+    body.classList.add('role-admin');
+    
+    // Set admin sidebar open by default in Admin view
+    const sidebar = document.getElementById('admin-sidebar');
+    if (sidebar) sidebar.style.marginLeft = '0px';
+  } else {
+    body.classList.remove('role-admin');
+    body.classList.add('role-user');
+    
+    // Hide admin sidebar completely for standard users
+    const sidebar = document.getElementById('admin-sidebar');
+    if (sidebar) {
+      sidebar.style.display = 'none';
+      sidebar.style.marginLeft = '-300px';
+    }
+  }
+
   // Initialize Quill Editor inside the A4 canvas sheet
   window.quill = null;
   const editorCanvasContainer = document.getElementById('quill-editor-canvas');
@@ -130,13 +214,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Move Quill Toolbar to Sidebar Container
+    // Move Quill Toolbar to the Top Navigation Bar Toolbar
     const qlToolbar = editorCanvasContainer.parentElement.querySelector('.ql-toolbar');
-    const sidebarToolbarContainer = document.getElementById('editor-sidebar-toolbar');
-    if (qlToolbar && sidebarToolbarContainer) {
-      sidebarToolbarContainer.appendChild(qlToolbar);
+    const topToolbarContainer = document.getElementById('editor-top-toolbar');
+    if (qlToolbar && topToolbarContainer) {
+      topToolbarContainer.appendChild(qlToolbar);
     }
 
+    // Populate Initial Letter Template
     window.quill.root.innerHTML = `
       <p><strong>To,</strong></p>
       <p><strong>Mr. Alex Turner</strong></p>
@@ -167,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Trigger initial footer content sync
   window.updateFooter();
+  window.toggleWatermark();
 
   // Symmetrical Viewport Auto-Fit Scaling Engine
   function autoFitCanvas() {
@@ -178,7 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sheet.style.transform = 'none';
 
-    // Symmetrical page padding buffer calculation
+    // Symmetrical page padding buffer calculation (adjusting for visible admin sidebar if active)
+    const sidebar = document.getElementById('admin-sidebar');
+    const sidebarWidth = (isAdmin && sidebar && sidebar.style.display !== 'none' && sidebar.style.marginLeft === '0px') ? 300 : 0;
+    
     const containerWidth = Math.max(previewArea.clientWidth - 48, 280);
     const containerHeight = Math.max(previewArea.clientHeight - 52, 350);
 
