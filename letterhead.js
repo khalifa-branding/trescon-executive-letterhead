@@ -197,7 +197,7 @@ window.paginateDocument = function(htmlContent) {
   
   // Available height inside the A4 sheet page body before it hits footer limits
   // At A4 scale, sheet height is 1123px. Padding + Header + Footer = ~390px. Remaining body clientHeight = ~730px.
-  const MAX_BODY_HEIGHT = 730;
+  const MAX_BODY_HEIGHT = 740;
 
   function appendElement(el) {
     if (el.nodeType === Node.TEXT_NODE && el.textContent.trim() === '') return;
@@ -205,7 +205,7 @@ window.paginateDocument = function(htmlContent) {
     const clone = el.cloneNode(true);
     currentBody.appendChild(clone);
 
-    // If current element height overflows page height
+    // If current element height overflows page height (scrollHeight measured correctly on visible DOM elements)
     if (currentBody.scrollHeight > MAX_BODY_HEIGHT) {
       
       // If it's a list (UL/OL), split the list items across pages
@@ -268,8 +268,8 @@ window.updateMargins = function() {
   const selectedValue = selectElem.value;
   localStorage.setItem('trescon_letterhead_margins', selectedValue);
   
-  // Re-run pagination with new margin class
-  if (window.quill) {
+  // Re-run pagination only if preview mode is active
+  if (document.body.classList.contains('preview-active') && window.quill) {
     window.paginateDocument(window.quill.root.innerHTML);
   }
   
@@ -300,11 +300,12 @@ window.togglePreviewMode = function() {
   const isPreview = body.classList.toggle('preview-active');
   
   if (isPreview) {
-    // Run pagination to split editor text into strict A4 pages
-    window.paginateDocument(window.quill.root.innerHTML);
-
+    // Show preview container first so that DOM height calculations are non-zero!
     composeView.style.display = 'none';
     previewView.style.display = 'block';
+
+    // Now run pagination to split editor text into strict A4 pages
+    window.paginateDocument(window.quill.root.innerHTML);
     
     if (btnText) btnText.textContent = "Edit Letter";
     
@@ -367,14 +368,27 @@ window.toggleAdminSidebar = function() {
 window.exportToPdf = function() {
   if (!window.quill) return;
 
-  // Run pagination to sync latest content
+  const previewView = document.getElementById('preview-workspace');
+  const composeView = document.getElementById('compose-workspace');
+  const originalDisplay = previewView ? previewView.style.display : 'none';
+  const originalComposeDisplay = composeView ? composeView.style.display : 'block';
+
+  // Temporarily show preview container for pagination measurements
+  if (previewView) previewView.style.display = 'block';
+  if (composeView) composeView.style.display = 'none';
+
+  // Run pagination
   window.paginateDocument(window.quill.root.innerHTML);
 
   const sheets = document.querySelectorAll('.a4-sheet');
   const selectElem = document.getElementById('office-preset');
   const selectedKey = selectElem ? selectElem.value : 'bangalore';
 
-  if (sheets.length === 0) return;
+  if (sheets.length === 0) {
+    if (previewView) previewView.style.display = originalDisplay;
+    if (composeView) composeView.style.display = originalComposeDisplay;
+    return;
+  }
 
   // Temporarily reset CSS scale transforms for pixel-perfect A4 canvas snapshots
   sheets.forEach(sheet => {
@@ -403,6 +417,10 @@ window.exportToPdf = function() {
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
+    // Restore display states
+    if (previewView) previewView.style.display = originalDisplay;
+    if (composeView) composeView.style.display = originalComposeDisplay;
+    
     // Restore preview scaling
     if (window.autoFitCanvas) {
       window.autoFitCanvas();
@@ -413,8 +431,23 @@ window.exportToPdf = function() {
 // Native Browser Printing Trigger
 window.printDocument = function() {
   if (!window.quill) return;
+
+  const previewView = document.getElementById('preview-workspace');
+  const composeView = document.getElementById('compose-workspace');
+  const originalDisplay = previewView ? previewView.style.display : 'none';
+  const originalComposeDisplay = composeView ? composeView.style.display : 'block';
+
+  // Temporarily show preview container for printing pagination
+  if (previewView) previewView.style.display = 'block';
+  if (composeView) composeView.style.display = 'none';
+
   window.paginateDocument(window.quill.root.innerHTML);
   window.print();
+
+  // Restore display states after print dialog closes
+  if (previewView) previewView.style.display = originalDisplay;
+  if (composeView) composeView.style.display = originalComposeDisplay;
+  if (window.autoFitCanvas) window.autoFitCanvas();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
