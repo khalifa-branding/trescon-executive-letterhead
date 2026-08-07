@@ -3,383 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>Trescon Global - Hiring Poster Studio Pro</title>
-  <meta name="description" content="Official Trescon Global Canva-style hiring poster generator and social media campaign editor. Fill out job details, pick aspect ratios (Square, Portrait, Story), design themes, and export high-res PNGs.">
+  <title>Trescon Global - Executive Letterhead Studio</title>
+  <meta name="description" content="Official Trescon Global executive letterhead studio. Directly compose letters on the A4 canvas and export as high-fidelity PDF.">
   
-  <!-- Google Fonts: Manrope (Clean UI Typography) & Anek Devanagari -->
+  <!-- Google Fonts: Anek Devanagari & Manrope -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=34.0">
+  <!-- Quill.js Rich Text Editor CSS -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="letterhead.css?v=42.0">
 </head>
 <body>
 
-  <div class="studio-app-container" id="studio-app-container">
-    
-    <!-- TOP FIXED NAVIGATION RIBBON -->
-    <header class="studio-top-ribbon">
-      <div class="ribbon-brand">
-        <img src="brand_assets/trescon-logo-white-2025.png" alt="Trescon Logo" class="brand-logo-img">
-        <div class="brand-divider"></div>
-        <h1 class="brand-title">Hiring Poster Studio</h1>
-        <span class="live-studio-badge"><span class="badge-dot"></span> PRO</span>
-      </div>
+  <div class="studio-app-container">
 
-      <div class="ribbon-actions">
-        <button id="btn-export-top" class="btn-top-export" aria-label="Export High-Res PNG">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-          Export High-Res PNG
-        </button>
-      </div>
-    </header>
-
-    <!-- MAIN THREE-COLUMN STUDIO LAYOUT -->
-    <div class="studio-main-layout">
+    <!-- MAIN TWO-PANEL STUDIO LAYOUT (FULL VIEWPORT HEIGHT) -->
+    <div class="studio-main-layout" style="height: 100vh; margin-top: 0; box-sizing: border-box;">
       
-      <!-- COLUMN 1: LEFT SIDEBAR (CONTENT & POSITIONS - 50/50 DIVIDE) -->
-      <aside class="editor-sidebar-left">
-        <div class="sidebar-header-clean">
-          <h2>1. Content & Positions</h2>
+      <!-- LEFT FORM INPUTS SIDEBAR -->
+      <aside class="sidebar-form no-print" style="width: 320px; min-width: 320px; background-color: #070d14; border-right: 1px solid #1e2936; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;">
+        
+        <!-- SIDEBAR BRAND HEADER -->
+        <div class="sidebar-brand-block" style="display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid #1e2936; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+            <img src="brand_assets/trescon-logo-white-2025.png" alt="Trescon Logo" style="height: 24px; width: auto;">
+            <div style="width: 1px; height: 22px; background: #2d3748;"></div>
+            <h1 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin: 0; line-height: 1.2;">Executive Studio</h1>
+          </div>
         </div>
 
-        <div class="accordion-container">
+        <form id="letterhead-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 16px; flex: 1;">
           
-          <!-- ACCORDION 1: CAMPAIGN HEADINGS & QUALIFICATIONS (OPEN BY DEFAULT) -->
-          <div class="accordion-item open" id="acc-item-headings">
-            <button class="accordion-header" aria-expanded="true" aria-controls="acc-body-headings">
-              <div class="acc-title-group">
-                <svg class="acc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                <span class="acc-title">Headings & Qualifications</span>
-              </div>
-              <svg class="acc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <!-- SECTION 1: OFFICE LOCATION PRESET -->
+          <div class="form-group">
+            <label for="office-preset" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Regional Office Location</label>
+            <select id="office-preset" class="form-control" onchange="updateFooter()" style="background: #16202c; color: #ffffff; border: 1px solid #2d3748; padding: 8px 10px; font-size: 0.82rem; border-radius: 6px; width: 100%; outline: none; box-sizing: border-box;">
+              <option value="bangalore" selected>Bangalore (HQ) — India</option>
+              <option value="manipal">Manipal — India</option>
+              <option value="mangalore">Mangalore — India</option>
+              <option value="dubai">Dubai (DIFC) — UAE</option>
+            </select>
+          </div>
+
+          <!-- SECTION 2: RICH TEXT FORMATTING TOOLBAR -->
+          <div class="form-group" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Formatting Toolbar</label>
+            <div id="editor-sidebar-toolbar" style="border: 1px solid #2d3748; border-radius: 6px; background: #16202c; width: 100%; box-sizing: border-box; overflow: hidden; height: auto;"></div>
+          </div>
+
+          <!-- ACTIONS CTA BOX -->
+          <div class="form-action-box" style="display: flex; flex-direction: column; gap: 10px; margin-top: auto; padding-top: 16px; border-top: 1px solid #1e2936;">
+            <button type="button" id="btn-export-pdf" onclick="exportToPdf()" style="width: 100%; padding: 12px 14px; font-size: 0.85rem; font-weight: 700; background-color: #007876; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; transition: background-color 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Export as PDF
             </button>
             
-            <div class="accordion-body" id="acc-body-headings">
-              <div class="form-group">
-                <div class="label-row">
-                  <label for="title-input">Campaign Title / Role Hook</label>
-                  <span class="char-counter" id="title-counter">Max 85</span>
-                </div>
-                <input type="text" id="title-input" class="form-input" maxlength="85" value="We're growing our team at Trescon Manipal!" placeholder="e.g. WE'RE HIRING AT TRESCON GLOBAL!">
-              </div>
-              <div class="form-group" style="margin-top: 0.5rem;">
-                <div class="label-row">
-                  <label for="subtitle-input">Role Overview / Subtitle</label>
-                  <span class="char-counter" id="subtitle-counter">Max 240</span>
-                </div>
-                <input type="text" id="subtitle-input" class="form-input" maxlength="240" value="We're looking for enthusiastic individuals to join us in these key roles:" placeholder="e.g. We're looking for experienced professionals to lead world-class B2B events:">
-              </div>
-              <!-- CANDIDATE QUALIFICATION & CRITERIA -->
-              <div class="form-group" style="margin-top: 0.5rem;">
-                <div class="label-row">
-                  <label for="qualifier-input">Candidate Qualification & Criteria (Optional)</label>
-                  <span class="char-counter" id="qualifier-counter">Max 220</span>
-                </div>
-                <input type="text" id="qualifier-input" class="form-input" maxlength="220" value="Whether you're a fresher eager to kickstart your career or someone experienced looking for your next opportunity, we'd love to hear from you." placeholder="e.g. 6+ yrs in conference production, GCC flagship events, C-suite stakeholder management.">
-              </div>
-              <!-- SINGLE-ROW EDITABLE CANDIDATE PRIORITY TOGGLE CONTROL -->
-              <div class="form-group" style="margin-top: 0.6rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.5rem;">
-                <div class="switch-input-container">
-                  <label class="switch" title="Toggle Candidate Priority ON/OFF">
-                    <input type="checkbox" id="show-priority-toggle" checked>
-                    <span class="slider"></span>
-                  </label>
-                  <input type="text" id="highlight-input" class="form-input switch-form-input" maxlength="45" value="Immediate Joiners Preferred" placeholder="Candidate Priority (e.g. Immediate Joiners Preferred)">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ACCORDION 2: OPEN POSITIONS & EXPERIENCE (OPEN BY DEFAULT) -->
-          <div class="accordion-item open" id="acc-item-roles">
-            <button class="accordion-header" aria-expanded="true" aria-controls="acc-body-roles">
-              <div class="acc-title-group">
-                <svg class="acc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                <span class="acc-title">Open Positions & Exp</span>
-                <span id="roles-limit-warning" class="warning-tag" style="display: none;">Max 5</span>
-              </div>
-              <svg class="acc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <button type="button" id="btn-print-letterhead" onclick="printDocument()" style="width: 100%; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; background-color: #16202c; color: #cbd5e1; border: 1px solid #2d3748; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; transition: background-color 0.2s;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print Document
             </button>
-
-            <div class="accordion-body" id="acc-body-roles">
-              <div id="roles-input-container" class="roles-container">
-                <!-- Dynamically populated by app.js -->
-              </div>
-              <button id="add-role-btn" class="add-role-btn">+ Add Position</button>
-              
-              <div class="form-group" style="margin-top: 0.6rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.45rem;">
-                <div class="switch-container">
-                  <label class="switch">
-                    <input type="checkbox" id="show-numbers-toggle" checked>
-                    <span class="slider"></span>
-                  </label>
-                  <span class="switch-label">Show Position Numbers (01, 02...)</span>
-                </div>
-              </div>
-            </div>
           </div>
 
-        </div>
+        </form>
       </aside>
 
-      <!-- COLUMN 2: CENTER WORKSPACE (POSTER CANVAS) -->
-      <main class="preview-workspace-center" id="preview-workspace">
-        <div class="studio-halo-glow" id="studio-halo-glow"></div>
+      <!-- RIGHT DISPLAY AREA: FULL VIEWPORT A4 DOCUMENT WORKSPACE (EXACT A4 PROPORTIONS ASPECT-RATIO 1 / 1.4142) -->
+      <main class="preview-area" style="flex: 1; background-color: #070a0f; padding: 32px 16px 120px 16px !important; overflow-y: auto; height: 100vh; display: block; box-sizing: border-box !important;">
+        
+        <div class="paper-container" id="sheets-wrapper" style="display: flex; justify-content: center; align-items: flex-start; margin: 0 auto; padding-bottom: 60px; width: 100%; height: auto !important; min-height: 100% !important; max-height: none !important; box-sizing: border-box !important;">
+          
+          <!-- PAGE 1 SHEET (STRICT A4 PROPORTIONS ASPECT-RATIO 1 / 1.4142 & MIN-HEIGHT 0) -->
+          <article class="a4-sheet" id="letterhead-sheet" style="width: 100% !important; max-width: 210mm !important; aspect-ratio: 1 / 1.4142 !important; height: auto !important; min-height: 0 !important; max-height: none !important; margin-bottom: 40px; box-sizing: border-box !important;">
+            
+            <!-- TOP ACCENT RULE -->
+            <div class="top-accent-bar" style="margin-bottom: 16px !important;"></div>
 
-        <!-- CANVAS FOOTPRINT SCALER WRAPPER -->
-        <div class="canvas-scaler" id="canvas-scaler">
-          <div class="flyer-canvas-wrapper ratio-portrait" id="flyer-canvas-wrapper">
-            <div class="flyer-canvas theme-emerald-glow" id="flyer-canvas">
-              
-              <div class="brand-pattern pattern-circles" id="brand-pattern"></div>
-              
-              <div class="brand-deco-circle deco-1"></div>
-              <div class="brand-deco-circle deco-2"></div>
-              <div class="brand-deco-circle deco-3"></div>
-              
-              <div class="flyer-header">
-                <img src="brand_assets/10-years-trescon-logo-W.png" alt="Trescon Global" class="flyer-logo" id="flyer-logo">
-                <div class="careers-badge">
-                  <span class="pulse-dot"></span>
-                  <span>Careers</span>
+            <!-- HEADER SECTION -->
+            <header class="letter-header" style="position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: flex-end; width: 100%; min-height: 48px; padding-top: 8px !important; opacity: 1; visibility: visible;">
+              <div class="header-logo-block" style="height: 60px !important; display: flex !important; align-items: flex-end; opacity: 1; visibility: visible;">
+                <img src="brand_assets/10-years-trescon-logo.png" alt="Trescon Global Logo" class="letterhead-logo" style="height: 60px !important; max-height: 60px !important; width: auto !important; display: block; visibility: visible; opacity: 1;">
+              </div>
+              <div class="header-meta-block" id="preview-header-contacts">
+                <div class="header-contact-line">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00A5A3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+                  <span id="preview-email">info@tresconglobal.com</span>
+                </div>
+                <div class="header-contact-line">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00A5A3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                  <span id="preview-web">tresconglobal.com</span>
                 </div>
               </div>
-              
-              <div class="flyer-intro">
-                <h2 class="flyer-title" id="flyer-title-text">We're growing our team at Trescon Manipal!</h2>
-                <p class="flyer-subtitle" id="flyer-subtitle-text">We're looking for enthusiastic individuals to join us in these key roles:</p>
+            </header>
+            <div class="header-gradient-rule" style="margin-top: 10px !important; margin-bottom: 16px !important;"></div>
+
+            <!-- DIRECT EDITABLE CANVAS BODY -->
+            <div class="letter-body blank-canvas-space" id="quill-editor-canvas" style="flex: 1; min-height: 0 !important;"></div>
+
+            <!-- FOOTER SECTION -->
+            <footer class="letter-footer" style="margin-top: auto; padding-top: 4px; margin-bottom: 0; padding-bottom: 4px;">
+              <div class="footer-divider" style="height: 1px; background-color: #00A5A3; margin-top: 8px !important; margin-bottom: 6px !important; opacity: 0.8;"></div>
+              <div class="footer-address-block" style="margin-bottom: 2px;">
+                <p class="footer-company-name" id="preview-footer-company" style="font-weight: 700; font-size: 0.74rem; color: #01373D; margin-bottom: 1px; line-height: 1.1;">Trescon Global Business Solutions Pvt Ltd.</p>
+                <p class="footer-address" id="preview-footer-address" style="font-size: 11px !important; color: #4A5568; line-height: 1.15 !important;">
+                  1st floor, Prom’S Complex, 3h, 7th C Main Rd, 3rd Block Koramangala, Bengaluru, Karnataka – 560034
+                  <br>[CIN: U74900KA2016PTC086221]
+                </p>
               </div>
-              
-              <div class="flyer-roles" id="flyer-roles-list">
-                <!-- Dynamic elements generated by app.js -->
-              </div>
-              
-              <div class="flyer-meta-row">
-                <div class="info-badge">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                  <span id="flyer-location-text">Manipal</span>
-                </div>
-                
-                <div class="info-badge badge-highlight" id="flyer-highlight-badge">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span id="flyer-highlight-text">Immediate Joiners Preferred</span>
-                </div>
-              </div>
-              
-              <p class="candidate-qualifier" id="flyer-candidate-qualifier">
-                Whether you're a fresher eager to kickstart your career or someone experienced looking for your next opportunity, we'd love to hear from you.
+              <p class="footer-disclaimer" style="font-size: 10px !important; color: #64748b !important; line-height: 1.15 !important; padding-top: 4px !important; margin-top: 6px !important; margin-bottom: 0; padding-bottom: 2px; border-top: 1px solid #dce3e6 !important;">
+                <strong>Disclaimer:</strong> The information shared by Trescon is confidential and intended solely for the recipient. It may not be copied, distributed, or relied upon without prior written consent. Trescon makes no warranties regarding the accuracy or completeness of the content and accepts no liability for any loss arising from its use. &copy; 2025 Trescon. All rights reserved.
               </p>
-              
-              <div class="cta-box">
-                <div class="cta-info">
-                  <span class="cta-text" id="flyer-cta-label-text">APPLY DIRECTLY VIA EMAIL</span>
-                  <a href="mailto:hr@tresconglobal.com" id="flyer-mailto-link" class="cta-highlight" title="Click to send email">
-                    <span id="flyer-email-text">hr@tresconglobal.com</span>
-                  </a>
-                </div>
-                
-                <div class="cta-right-col">
-                  <a href="https://tresconglobal.com" target="_blank" class="cta-website-badge" title="Visit Official Website">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path></svg>
-                    <span>tresconglobal.com</span>
-                  </a>
-                </div>
-              </div>
+            </footer>
 
-            </div>
-          </div>
-        </div>
+          </article>
 
-        <!-- FIGMA / CANVA STYLE FLOATING GLASS CONTROL DOCK -->
-        <div class="canvas-floating-dock" id="canvas-floating-dock">
-          <!-- Auto-Save Indicator -->
-          <div class="dock-status" id="status-indicator">
-            <span class="status-check-icon">✓</span>
-            <span class="status-text" id="status-text">All changes saved</span>
-          </div>
-
-          <div class="dock-divider"></div>
-
-          <!-- Canvas Zoom Controls -->
-          <div class="dock-zoom-group" id="navbar-zoom-controls">
-            <button class="toolbar-btn" id="btn-zoom-out" title="Zoom Out (-)" aria-label="Zoom out">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <span class="zoom-value" id="zoom-value-text">100%</span>
-            <button class="toolbar-btn" id="btn-zoom-in" title="Zoom In (+)" aria-label="Zoom in">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button class="toolbar-btn" id="btn-zoom-fit" title="Fit to Screen" aria-label="Fit screen">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path></svg>
-            </button>
-          </div>
-
-          <div class="dock-divider"></div>
-
-          <!-- Reset Button -->
-          <button id="btn-reset-form" class="dock-btn" title="Reset to default form settings" aria-label="Reset form settings">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-            <span>Reset</span>
-          </button>
-
-          <div class="dock-divider"></div>
-
-          <!-- Fullscreen Button -->
-          <button id="btn-toggle-fullscreen" class="dock-btn" title="Toggle Fullscreen Preview Mode" aria-label="Toggle Fullscreen">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 1-2 2v3m18-5h-3a2 2 0 0 1-2 2v3m0 11v3a2 2 0 0 1-2 2h-3m-11 0H5a2 2 0 0 1-2-2v-3"></path></svg>
-            <span>Fullscreen</span>
-          </button>
         </div>
 
       </main>
-
-      <!-- COLUMN 3: RIGHT SIDEBAR (CONTACT & STYLE - 50/50 DIVIDE) -->
-      <aside class="editor-sidebar-right">
-        <div class="sidebar-header-clean">
-          <h2>2. Details & Styling</h2>
-        </div>
-
-        <div class="accordion-container">
-          
-          <!-- ACCORDION 3: CONTACT & LOCATION (OPEN BY DEFAULT) -->
-          <div class="accordion-item open" id="acc-item-contact">
-            <button class="accordion-header" aria-expanded="true" aria-controls="acc-body-contact">
-              <div class="acc-title-group">
-                <svg class="acc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                <span class="acc-title">Contact & Location</span>
-              </div>
-              <svg class="acc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-
-            <div class="accordion-body" id="acc-body-contact">
-              <div class="form-group">
-                <div class="label-row">
-                  <label for="location-input">Office Location</label>
-                  <span class="char-counter" id="location-counter">Max 35</span>
-                </div>
-                <input type="text" id="location-input" class="form-input" maxlength="35" value="Manipal" placeholder="Manipal">
-              </div>
-              <div class="form-group" style="margin-top: 0.5rem;">
-                <div class="label-row">
-                  <label for="email-input">Recruitment Email</label>
-                  <span class="char-counter" id="email-counter">Max 45</span>
-                </div>
-                <input type="email" id="email-input" class="form-input" maxlength="45" value="hr@tresconglobal.com" placeholder="hr@tresconglobal.com">
-              </div>
-              <div class="form-group" style="margin-top: 0.5rem;">
-                <div class="label-row">
-                  <label for="cta-label-input">CTA Prompt</label>
-                  <span class="char-counter" id="cta-counter">Max 40</span>
-                </div>
-                <input type="text" id="cta-label-input" class="form-input" maxlength="40" value="APPLY DIRECTLY VIA EMAIL" placeholder="APPLY DIRECTLY VIA EMAIL">
-              </div>
-            </div>
-          </div>
-
-          <!-- ACCORDION 4: THEME & FORMAT (OPEN BY DEFAULT) -->
-          <div class="accordion-item open" id="acc-item-style">
-            <button class="accordion-header" aria-expanded="true" aria-controls="acc-body-style">
-              <div class="acc-title-group">
-                <svg class="acc-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.65 0-.43-.17-.83-.44-1.14-.29-.33-.46-.77-.46-1.26 0-1.05.85-1.9 1.9-1.9H17c2.76 0 5-2.24 5-5 0-4.97-4.48-9-10-9z"></path></svg>
-                <span class="acc-title">Theme & Ratio</span>
-              </div>
-              <svg class="acc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-
-            <div class="accordion-body" id="acc-body-style">
-              <!-- Aspect Ratio -->
-              <div class="form-group">
-                <label>Aspect Ratio</label>
-                <div class="options-grid">
-                  <div class="option-card">
-                    <input type="radio" id="ratio-square-opt" name="size-preset" value="square">
-                    <label for="ratio-square-opt">
-                      <span class="icon">⬜</span>
-                      <span>Square (1:1)</span>
-                    </label>
-                  </div>
-                  <div class="option-card">
-                    <input type="radio" id="ratio-portrait-opt" name="size-preset" value="portrait" checked>
-                    <label for="ratio-portrait-opt">
-                      <span class="icon">▰</span>
-                      <span>Portrait (4:5)</span>
-                    </label>
-                  </div>
-                  <div class="option-card">
-                    <input type="radio" id="ratio-story-opt" name="size-preset" value="story">
-                    <label for="ratio-story-opt">
-                      <span class="icon">▮</span>
-                      <span>Story (9:16)</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Color Swatches -->
-              <div class="form-group" style="margin-top: 0.85rem;">
-                <label>Color Swatches</label>
-                <div class="theme-swatch-grid">
-                  <div class="theme-swatch-card">
-                    <input type="radio" id="theme-emerald-opt" name="theme-preset" value="emerald" checked>
-                    <label for="theme-emerald-opt">
-                      <div class="swatch-preview-box preview-emerald">
-                        <span class="swatch-dot dot-lime"></span>
-                        <span class="swatch-dot dot-teal"></span>
-                      </div>
-                      <div class="swatch-details">
-                        <span class="swatch-name">Emerald</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div class="theme-swatch-card">
-                    <input type="radio" id="theme-midnight-opt" name="theme-preset" value="midnight">
-                    <label for="theme-midnight-opt">
-                      <div class="swatch-preview-box preview-cyan"></span>
-                        <span class="swatch-dot dot-blue"></span>
-                      </div>
-                      <div class="swatch-details">
-                        <span class="swatch-name">Midnight</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div class="theme-swatch-card">
-                    <input type="radio" id="theme-light-opt" name="theme-preset" value="light">
-                    <label for="theme-light-opt">
-                      <div class="swatch-preview-box preview-light">
-                        <span class="swatch-dot dot-dark"></span>
-                        <span class="swatch-dot dot-slate"></span>
-                      </div>
-                      <div class="swatch-details">
-                        <span class="swatch-name">Light Paper</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </aside>
 
     </div>
 
   </div>
 
-  <!-- HTML2Canvas Image Export Library -->
-  <script src="html2canvas.min.js"></script>
-  <script src="app.js?v=34.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="letterhead.js?v=42.0"></script>
 </body>
 </html>
