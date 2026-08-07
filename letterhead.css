@@ -1117,23 +1117,51 @@ img.letterhead-logo,
   padding-right: 36px !important;
 }
 
+/* Compose Mode Workspace & Card Styling */
+#compose-workspace {
+  transition: opacity 0.2s ease-in-out;
+}
+
+#composer-card {
+  background-color: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  min-height: 500px !important;
+  padding: 40px !important;
+  box-sizing: border-box !important;
+}
+
+#composer-card .ql-editor {
+  min-height: 420px !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  color: #1e293b !important;
+  padding: 0 !important;
+}
+
+#composer-card .ql-container.ql-snow {
+  border: none !important;
+}
+
 /* Symmetrical Preview Mode Style Overrides */
-.preview-active .ql-editor {
-  caret-color: transparent !important;
-}
-
-.preview-active .ql-tooltip {
-  display: none !important;
-}
-
 .preview-active #editor-top-toolbar {
   visibility: hidden !important;
   opacity: 0 !important;
 }
 
-/* Hide styling handles or lines in preview */
-.preview-active .ql-editor:focus {
-  outline: none !important;
+/* Ensure the synced read-only preview body matches the font styling */
+#letterhead-preview-body {
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  color: #1e293b !important;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+#letterhead-preview-body p {
+  margin-bottom: 0.8em !important;
 }
 
 /* --------------------------------------------------------------------------

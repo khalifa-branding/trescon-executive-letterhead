@@ -1,5 +1,5 @@
 /**
- * Trescon Global Executive Letterhead Studio Logic (Direct WYSIWYG Composition Architecture)
+ * Trescon Global Executive Letterhead Studio Logic (Plain Composer with Toggleable A4 Preview)
  */
 
 // Preset Address Database
@@ -38,6 +38,22 @@ const ADDRESS_PRESETS = {
   }
 };
 
+// Programmatic Formatting of Today's Date (e.g. 7th August 2026)
+function getFormattedDate() {
+  const date = new Date();
+  const day = date.getDate();
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  let suffix = "th";
+  if (day === 1 || day === 21 || day === 31) suffix = "st";
+  else if (day === 2 || day === 22) suffix = "nd";
+  else if (day === 3 || day === 23) suffix = "rd";
+  
+  return `${day}${suffix} ${month} ${year}`;
+}
+
 // Global Update Footer & Office Preset Function
 window.updateFooter = function() {
   const selectElem = document.getElementById('office-preset');
@@ -63,14 +79,19 @@ window.updateFooter = function() {
   if (webElem) webElem.textContent = data.web;
 };
 
-// Real-time A4 Page Overflow Verification
+// Real-time A4 Page Preview Overflow Verification
 window.checkOverflow = function() {
-  const editor = document.querySelector('.ql-editor');
-  const container = document.getElementById('quill-editor-canvas');
-  if (!editor || !container) return;
+  const previewBody = document.getElementById('letterhead-preview-body');
+  const isPreviewActive = document.body.classList.contains('preview-active');
   
-  // Available height verification
-  const isOverflowing = editor.scrollHeight > container.clientHeight;
+  if (!previewBody || !isPreviewActive) {
+    const warningBanner = document.getElementById('overflow-warning');
+    if (warningBanner) warningBanner.remove();
+    return;
+  }
+  
+  // Available height verification in A4 canvas container
+  const isOverflowing = previewBody.scrollHeight > previewBody.clientHeight;
   
   let warningBanner = document.getElementById('overflow-warning');
   if (isOverflowing) {
@@ -100,17 +121,12 @@ window.updateMargins = function() {
 
   const selectedValue = selectElem.value;
   
-  // Remove all margin classes
   sheet.classList.remove('margins-normal', 'margins-compact', 'margins-wide');
   sheet.classList.add(`margins-${selectedValue}`);
   
-  // Persist in localStorage so users/writers get the admin margin layout by default
   localStorage.setItem('trescon_letterhead_margins', selectedValue);
   
-  // Verify overflow immediately after margin adjustment
   if (window.checkOverflow) window.checkOverflow();
-  
-  // Re-scale container
   if (window.autoFitCanvas) window.autoFitCanvas();
 };
 
@@ -126,23 +142,35 @@ window.toggleWatermark = function() {
   }
 };
 
-// Toggle Symmetrical Preview Mode (Hides formatting toolbar & sets editor to read-only)
+// Toggle between Plain Compose Mode and A4 Layout Preview Mode
 window.togglePreviewMode = function() {
   const body = document.body;
   const btnText = document.getElementById('preview-btn-text');
-  if (!window.quill) return;
+  const composeView = document.getElementById('compose-workspace');
+  const previewView = document.getElementById('preview-workspace');
+  if (!window.quill || !composeView || !previewView) return;
 
   const isPreview = body.classList.toggle('preview-active');
   
   if (isPreview) {
-    window.quill.enable(false); // set editor to read-only
+    // Copy content from plain editor to read-only A4 sheet preview body
+    const contentHtml = window.quill.root.innerHTML;
+    const previewBody = document.getElementById('letterhead-preview-body');
+    if (previewBody) previewBody.innerHTML = contentHtml;
+
+    composeView.style.display = 'none';
+    previewView.style.display = 'block';
+    
     if (btnText) btnText.textContent = "Edit Letter";
+    
+    if (window.autoFitCanvas) window.autoFitCanvas();
   } else {
-    window.quill.enable(true); // set editor back to editable
+    composeView.style.display = 'block';
+    previewView.style.display = 'none';
+    
     if (btnText) btnText.textContent = "Preview";
   }
   
-  // Update overflow state after toggling editor modes
   if (window.checkOverflow) window.checkOverflow();
 };
 
@@ -171,7 +199,6 @@ window.injectSignature = function(preset) {
     `;
   }
 
-  // Append preset HTML block safely to Quill editor contents
   const currentHtml = window.quill.root.innerHTML;
   window.quill.root.innerHTML = currentHtml + sigHtml;
   window.quill.focus();
@@ -188,7 +215,6 @@ window.toggleAdminSidebar = function() {
     sidebar.style.marginLeft = '0px';
   }
   
-  // Re-fit canvas layout scaling after transition animation finishes
   setTimeout(() => {
     if (window.autoFitCanvas) window.autoFitCanvas();
   }, 310);
@@ -196,19 +222,24 @@ window.toggleAdminSidebar = function() {
 
 // Export A4 sheet directly to high-fidelity PDF via html2pdf
 window.exportToPdf = function() {
+  if (!window.quill) return;
+
+  // Render content onto A4 sheet behind the scenes
+  const previewBody = document.getElementById('letterhead-preview-body');
+  if (previewBody) {
+    previewBody.innerHTML = window.quill.root.innerHTML;
+  }
+
   const element = document.getElementById('letterhead-sheet');
   const selectElem = document.getElementById('office-preset');
   const selectedKey = selectElem ? selectElem.value : 'bangalore';
 
-  // Force clean preview view during export
-  const body = document.body;
-  const originalPreviewState = body.classList.contains('preview-active');
-  if (!originalPreviewState) {
-    body.classList.add('preview-active');
-    if (window.quill) window.quill.enable(false);
-  }
-
   // Temporarily reset CSS transform scaling to ensure pixel-perfect 1:1 html2canvas resolution
+  const originalTransform = element.style.transform;
+  const originalWidth = element.style.width;
+  const originalHeight = element.style.height;
+  const originalMargin = element.style.margin;
+
   element.style.transform = 'none';
   element.style.width = '210mm';
   element.style.height = '297mm';
@@ -230,11 +261,7 @@ window.exportToPdf = function() {
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    // Restore layout states
-    if (!originalPreviewState) {
-      body.classList.remove('preview-active');
-      if (window.quill) window.quill.enable(true);
-    }
+    // Restore scaling layout
     if (window.autoFitCanvas) {
       window.autoFitCanvas();
     }
@@ -243,12 +270,16 @@ window.exportToPdf = function() {
 
 // Native Browser Printing Trigger
 window.printDocument = function() {
+  if (!window.quill) return;
+  const previewBody = document.getElementById('letterhead-preview-body');
+  if (previewBody) {
+    previewBody.innerHTML = window.quill.root.innerHTML;
+  }
   window.print();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Role-Based Access Engine Configuration
   const urlParams = new URLSearchParams(window.location.search);
   const isAdmin = urlParams.has('admin') || urlParams.get('role') === 'admin';
   const body = document.body;
@@ -257,14 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
     body.classList.remove('role-user');
     body.classList.add('role-admin');
     
-    // Set admin sidebar open by default in Admin view
     const sidebar = document.getElementById('admin-sidebar');
     if (sidebar) sidebar.style.marginLeft = '0px';
   } else {
     body.classList.remove('role-admin');
     body.classList.add('role-user');
     
-    // Hide admin sidebar completely for standard users
     const sidebar = document.getElementById('admin-sidebar');
     if (sidebar) {
       sidebar.style.display = 'none';
@@ -284,11 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
     marginsSelector.value = savedMargins;
   }
 
-  // Initialize Quill Editor inside the A4 canvas sheet
+  // Initialize Quill Editor inside the plain Compose workspace card
   window.quill = null;
-  const editorCanvasContainer = document.getElementById('quill-editor-canvas');
+  const editorComposeContainer = document.getElementById('quill-editor-compose');
 
-  if (window.Quill && editorCanvasContainer) {
+  if (window.Quill && editorComposeContainer) {
     const toolbarOptions = [
       ['bold', 'italic', 'underline'],
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
@@ -296,32 +325,35 @@ document.addEventListener('DOMContentLoaded', () => {
       ['clean']
     ];
 
-    window.quill = new Quill('#quill-editor-canvas', {
+    window.quill = new Quill('#quill-editor-compose', {
       theme: 'snow',
-      placeholder: 'Type or compose your letter here directly on the A4 page...',
+      placeholder: 'Compose your official letter details here directly...',
       modules: { 
         toolbar: toolbarOptions
       }
     });
 
     // Move Quill Toolbar to the Top Navigation Bar Toolbar
-    const qlToolbar = editorCanvasContainer.parentElement.querySelector('.ql-toolbar');
+    const qlToolbar = editorComposeContainer.parentElement.querySelector('.ql-toolbar');
     const topToolbarContainer = document.getElementById('editor-top-toolbar');
     if (qlToolbar && topToolbarContainer) {
       topToolbarContainer.appendChild(qlToolbar);
     }
 
-    // Populate Editor (Load saved draft if available, otherwise load default template)
+    // Populate Editor (Load saved draft if available, otherwise load default template with today's auto-date)
     const savedDraft = localStorage.getItem('trescon_letterhead_draft');
     if (savedDraft) {
       window.quill.root.innerHTML = savedDraft;
     } else {
+      const todayDate = getFormattedDate();
       window.quill.root.innerHTML = `
         <p><strong>To,</strong></p>
         <p><strong>Mr. Alex Turner</strong></p>
         <p>Chief Executive Officer</p>
         <p>Apex Global Innovations Ltd.</p>
         <p>Bengaluru, Karnataka</p>
+        <p><br></p>
+        <p>Date: ${todayDate}</p>
         <p><br></p>
         <p><strong>Subject: Formal Proposal & Corporate Partnership Engagement</strong></p>
         <p><br></p>
@@ -338,15 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // Verify overflow on load and hook inside Quill text-change listener
-    if (window.checkOverflow) {
-      window.checkOverflow();
-      window.quill.on('text-change', () => {
-        window.checkOverflow();
-        // Autosave draft to localStorage
-        localStorage.setItem('trescon_letterhead_draft', window.quill.root.innerHTML);
-      });
-    }
+    // Hook inside Quill text-change listener to autosave drafts
+    window.quill.on('text-change', () => {
+      localStorage.setItem('trescon_letterhead_draft', window.quill.root.innerHTML);
+    });
   }
 
   // Bind Office Location Preset Selector
@@ -359,24 +386,23 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateFooter();
   window.toggleWatermark();
 
-  // Symmetrical Viewport Auto-Fit Scaling Engine
+  // Symmetrical Viewport Auto-Fit Scaling Engine (Runs in Preview view only)
   function autoFitCanvas() {
     const previewArea = document.querySelector('.preview-area');
     const paperContainer = document.querySelector('.paper-container');
     const sheet = document.getElementById('letterhead-sheet');
+    const previewView = document.getElementById('preview-workspace');
 
-    if (!previewArea || !paperContainer || !sheet) return;
+    if (!previewArea || !paperContainer || !sheet || previewView.style.display === 'none') return;
 
     sheet.style.transform = 'none';
 
-    // Symmetrical page padding buffer calculation (adjusting for visible admin sidebar if active)
     const sidebar = document.getElementById('admin-sidebar');
     const sidebarWidth = (isAdmin && sidebar && sidebar.style.display !== 'none' && sidebar.style.marginLeft === '0px') ? 300 : 0;
     
     const containerWidth = Math.max(previewArea.clientWidth - 48, 280);
     const containerHeight = Math.max(previewArea.clientHeight - 52, 350);
 
-    // Standard A4 Dimensions @ 96 DPI
     const sheetWidth = 794;
     const sheetHeight = 1123;
 
