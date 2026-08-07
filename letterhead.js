@@ -1,5 +1,5 @@
 /**
- * Trescon Global Executive Letterhead Studio Logic (Plain Composer with Toggleable A4 Preview)
+ * Trescon Global Executive Letterhead Studio Logic (Plain Composer with Multi-Page Toggleable A4 Pagination)
  */
 
 // Preset Address Database
@@ -77,69 +77,216 @@ window.updateFooter = function() {
   if (addressElem) addressElem.innerHTML = inlineAddr;
   if (emailElem) emailElem.textContent = data.email;
   if (webElem) webElem.textContent = data.web;
+
+  // Re-run pagination if preview mode is active to apply new footer addresses
+  if (document.body.classList.contains('preview-active') && window.quill) {
+    window.paginateDocument(window.quill.root.innerHTML);
+  }
 };
 
-// Real-time A4 Page Preview Overflow Verification
-window.checkOverflow = function() {
-  const previewBody = document.getElementById('letterhead-preview-body');
-  const isPreviewActive = document.body.classList.contains('preview-active');
+// Create a single strict A4 Sheet DOM structure
+window.createNewA4Sheet = function(pageNumber) {
+  const sheet = document.createElement('article');
+  sheet.className = 'a4-sheet';
+  sheet.id = `letterhead-sheet-page-${pageNumber}`;
   
-  if (!previewBody || !isPreviewActive) {
-    const warningBanner = document.getElementById('overflow-warning');
-    if (warningBanner) warningBanner.remove();
-    return;
+  // Get active margins preset
+  const selectMargins = document.getElementById('margins-preset');
+  const savedMargins = selectMargins ? selectMargins.value : (localStorage.getItem('trescon_letterhead_margins') || 'normal');
+  sheet.classList.add(`margins-${savedMargins}`);
+  
+  // Set inline styles for strict A4 canvas height locks
+  sheet.style.cssText = `
+    width: 100% !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    margin-bottom: 40px;
+    box-sizing: border-box !important;
+    position: relative;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    display: flex;
+    flex-direction: column;
+  `;
+  
+  // Get office address data
+  const selectElem = document.getElementById('office-preset');
+  const selectedKey = selectElem ? selectElem.value : 'bangalore';
+  const data = ADDRESS_PRESETS[selectedKey] || ADDRESS_PRESETS.bangalore;
+  
+  let inlineAddr = data.address;
+  if (data.cin) {
+    inlineAddr += `<br>[${data.cin}]`;
+  } else if (data.extra) {
+    inlineAddr += `<br>[${data.extra}]`;
   }
+
+  // Watermark status
+  const watermarkToggle = document.getElementById('watermark-toggle');
+  const watermarkDisplay = (watermarkToggle && watermarkToggle.checked) ? 'block' : 'none';
+
+  sheet.innerHTML = `
+    <!-- WATERMARK LOGO OVERLAY -->
+    <div class="watermark-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); width: 320px; height: 320px; background-image: url('brand_assets/10-years-trescon-logo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; opacity: 0.035; pointer-events: none; z-index: 1; display: ${watermarkDisplay};"></div>
+
+    <!-- TOP ACCENT RULE -->
+    <div class="top-accent-bar" style="height: 5px; background: linear-gradient(90deg, #007876 0%, #00a5a3 100%); margin-bottom: 16px !important; width: 100%;"></div>
+
+    <!-- HEADER SECTION -->
+    <header class="letter-header" style="position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: flex-end; width: 100%; min-height: 48px; padding-top: 8px !important; padding-left: 20px; padding-right: 20px; opacity: 1; visibility: visible; box-sizing: border-box;">
+      <div class="header-logo-block" style="height: 60px !important; display: flex !important; align-items: flex-end; opacity: 1; visibility: visible;">
+        <img src="brand_assets/10-years-trescon-logo.png" alt="Trescon Global Logo" class="letterhead-logo" style="height: 60px !important; max-height: 60px !important; width: auto !important; display: block; visibility: visible; opacity: 1;">
+      </div>
+      <div class="header-meta-block" style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+        <div class="header-contact-line" style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #4a5568;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00A5A3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+          <span>${data.email}</span>
+        </div>
+        <div class="header-contact-line" style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #4a5568;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00A5A3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>${data.web}</span>
+        </div>
+      </div>
+    </header>
+    <div class="header-gradient-rule" style="height: 1px; background: linear-gradient(90deg, rgba(0,120,118,0.8) 0%, rgba(0,165,163,0) 100%); margin-top: 10px !important; margin-bottom: 16px !important; width: 100%;"></div>
+
+    <!-- MAIN BODY AREA (PAGINATED CHUNKS) -->
+    <div class="letter-body blank-canvas-space" style="flex: 1; min-height: 0 !important; position: relative; z-index: 5; box-sizing: border-box; overflow: hidden; padding-bottom: 20px;"></div>
+
+    <!-- FOOTER SECTION -->
+    <footer class="letter-footer" style="margin-top: auto; padding-top: 4px; margin-bottom: 0; padding-bottom: 4px; padding-left: 20px; padding-right: 20px; position: relative; z-index: 5; box-sizing: border-box; width: 100%;">
+      <div class="footer-divider" style="height: 1px; background-color: #00A5A3; margin-top: 8px !important; margin-bottom: 6px !important; opacity: 0.8; width: 100%;"></div>
+      <div class="footer-address-block" style="margin-bottom: 2px;">
+        <p class="footer-company-name" style="font-weight: 700; font-size: 0.74rem; color: #01373D; margin: 0 0 1px 0; line-height: 1.1;">${data.entity}</p>
+        <p class="footer-address" style="font-size: 11px !important; color: #4A5568; line-height: 1.15 !important; margin: 0;">
+          ${inlineAddr}
+        </p>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #dce3e6 !important; margin-top: 6px !important; padding-top: 4px !important; box-sizing: border-box;">
+        <p class="footer-disclaimer" style="font-size: 10px !important; color: #64748b !important; line-height: 1.15 !important; margin: 0; padding-bottom: 2px; flex: 1;">
+          <strong>Disclaimer:</strong> The information shared by Trescon is confidential and intended solely for the recipient. &copy; 2025 Trescon.
+        </p>
+        <span style="font-size: 10px; color: #64748b; font-weight: 700; flex-shrink: 0; margin-left: 10px;">Page ${pageNumber}</span>
+      </div>
+    </footer>
+  `;
   
-  // Available height verification in A4 canvas container
-  const isOverflowing = previewBody.scrollHeight > previewBody.clientHeight;
+  return sheet;
+};
+
+// Dynamic Pagination Algorithm (Flows HTML block elements across A4 sheets)
+window.paginateDocument = function(htmlContent) {
+  const wrapper = document.getElementById('sheets-wrapper');
+  if (!wrapper) return;
   
-  let warningBanner = document.getElementById('overflow-warning');
-  if (isOverflowing) {
-    if (!warningBanner) {
-      warningBanner = document.createElement('div');
-      warningBanner.id = 'overflow-warning';
-      warningBanner.className = 'no-print';
-      warningBanner.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; z-index: 1000; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 8px; pointer-events: none;';
-      warningBanner.innerHTML = `
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        Warning: Content exceeds A4 page height! Please shorten text to fit on one page.
-      `;
-      document.body.appendChild(warningBanner);
+  wrapper.innerHTML = ''; // Clear previous sheets
+  
+  const parser = document.createElement('div');
+  parser.innerHTML = htmlContent;
+  
+  const childNodes = Array.from(parser.childNodes);
+  let currentPageNumber = 1;
+  let currentSheet = window.createNewA4Sheet(currentPageNumber);
+  wrapper.appendChild(currentSheet);
+  
+  let currentBody = currentSheet.querySelector('.letter-body');
+  
+  // Available height inside the A4 sheet page body before it hits footer limits
+  // At A4 scale, sheet height is 1123px. Padding + Header + Footer = ~390px. Remaining body clientHeight = ~730px.
+  const MAX_BODY_HEIGHT = 730;
+
+  function appendElement(el) {
+    if (el.nodeType === Node.TEXT_NODE && el.textContent.trim() === '') return;
+
+    const clone = el.cloneNode(true);
+    currentBody.appendChild(clone);
+
+    // If current element height overflows page height
+    if (currentBody.scrollHeight > MAX_BODY_HEIGHT) {
+      
+      // If it's a list (UL/OL), split the list items across pages
+      if (clone.tagName === 'UL' || clone.tagName === 'OL') {
+        clone.remove(); // remove full list
+
+        const listItems = Array.from(el.childNodes);
+        let listClone = document.createElement(el.tagName);
+        currentBody.appendChild(listClone);
+
+        for (const item of listItems) {
+          if (item.nodeType === Node.TEXT_NODE && item.textContent.trim() === '') continue;
+
+          const itemClone = item.cloneNode(true);
+          listClone.appendChild(itemClone);
+
+          if (currentBody.scrollHeight > MAX_BODY_HEIGHT) {
+            itemClone.remove(); // remove overflowing item
+
+            if (listClone.children.length === 0) {
+              listClone.remove();
+            }
+
+            // Create new sheet
+            currentPageNumber++;
+            currentSheet = window.createNewA4Sheet(currentPageNumber);
+            wrapper.appendChild(currentSheet);
+            currentBody = currentSheet.querySelector('.letter-body');
+
+            // Open new list on new page
+            listClone = document.createElement(el.tagName);
+            currentBody.appendChild(listClone);
+            listClone.appendChild(itemClone);
+          }
+        }
+      } else {
+        // Simple element overflow: remove from current page and place on next page
+        clone.remove();
+
+        currentPageNumber++;
+        currentSheet = window.createNewA4Sheet(currentPageNumber);
+        wrapper.appendChild(currentSheet);
+        currentBody = currentSheet.querySelector('.letter-body');
+
+        currentBody.appendChild(clone);
+      }
     }
-  } else {
-    if (warningBanner) {
-      warningBanner.remove();
-    }
+  }
+
+  for (const el of childNodes) {
+    appendElement(el);
   }
 };
 
 // Update Sheet Margin Styles (Admin Setting)
 window.updateMargins = function() {
   const selectElem = document.getElementById('margins-preset');
-  const sheet = document.getElementById('letterhead-sheet');
-  if (!selectElem || !sheet) return;
+  if (!selectElem) return;
 
   const selectedValue = selectElem.value;
-  
-  sheet.classList.remove('margins-normal', 'margins-compact', 'margins-wide');
-  sheet.classList.add(`margins-${selectedValue}`);
-  
   localStorage.setItem('trescon_letterhead_margins', selectedValue);
   
-  if (window.checkOverflow) window.checkOverflow();
+  // Re-run pagination with new margin class
+  if (window.quill) {
+    window.paginateDocument(window.quill.root.innerHTML);
+  }
+  
   if (window.autoFitCanvas) window.autoFitCanvas();
 };
 
 // Toggle Watermark Overlay (Admin Setting)
 window.toggleWatermark = function() {
   const toggle = document.getElementById('watermark-toggle');
-  const watermark = document.getElementById('watermark-logo-overlay');
-  if (!toggle || !watermark) return;
-  if (toggle.checked) {
-    watermark.style.display = 'block';
-  } else {
-    watermark.style.display = 'none';
-  }
+  if (!toggle) return;
+  
+  const watermarkState = toggle.checked;
+  const overlays = document.querySelectorAll('.watermark-overlay');
+  
+  overlays.forEach(overlay => {
+    overlay.style.display = watermarkState ? 'block' : 'none';
+  });
 };
 
 // Toggle between Plain Compose Mode and A4 Layout Preview Mode
@@ -153,10 +300,8 @@ window.togglePreviewMode = function() {
   const isPreview = body.classList.toggle('preview-active');
   
   if (isPreview) {
-    // Copy content from plain editor to read-only A4 sheet preview body
-    const contentHtml = window.quill.root.innerHTML;
-    const previewBody = document.getElementById('letterhead-preview-body');
-    if (previewBody) previewBody.innerHTML = contentHtml;
+    // Run pagination to split editor text into strict A4 pages
+    window.paginateDocument(window.quill.root.innerHTML);
 
     composeView.style.display = 'none';
     previewView.style.display = 'block';
@@ -170,8 +315,6 @@ window.togglePreviewMode = function() {
     
     if (btnText) btnText.textContent = "Preview";
   }
-  
-  if (window.checkOverflow) window.checkOverflow();
 };
 
 // Inject Signature Preset Block at Cursor or End of Document
@@ -224,26 +367,24 @@ window.toggleAdminSidebar = function() {
 window.exportToPdf = function() {
   if (!window.quill) return;
 
-  // Render content onto A4 sheet behind the scenes
-  const previewBody = document.getElementById('letterhead-preview-body');
-  if (previewBody) {
-    previewBody.innerHTML = window.quill.root.innerHTML;
-  }
+  // Run pagination to sync latest content
+  window.paginateDocument(window.quill.root.innerHTML);
 
-  const element = document.getElementById('letterhead-sheet');
+  const sheets = document.querySelectorAll('.a4-sheet');
   const selectElem = document.getElementById('office-preset');
   const selectedKey = selectElem ? selectElem.value : 'bangalore';
 
-  // Temporarily reset CSS transform scaling to ensure pixel-perfect 1:1 html2canvas resolution
-  const originalTransform = element.style.transform;
-  const originalWidth = element.style.width;
-  const originalHeight = element.style.height;
-  const originalMargin = element.style.margin;
+  if (sheets.length === 0) return;
 
-  element.style.transform = 'none';
-  element.style.width = '210mm';
-  element.style.height = '297mm';
-  element.style.margin = '0';
+  // Temporarily reset CSS scale transforms for pixel-perfect A4 canvas snapshots
+  sheets.forEach(sheet => {
+    sheet.style.transform = 'none';
+    sheet.style.width = '210mm';
+    sheet.style.height = '297mm';
+    sheet.style.margin = '0 0 10mm 0';
+  });
+
+  const element = document.getElementById('sheets-wrapper');
 
   const opt = {
     margin: 0,
@@ -257,11 +398,12 @@ window.exportToPdf = function() {
       scrollY: 0,
       scrollX: 0
     },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], before: '.a4-sheet' } // Insert pagebreaks before each sheet element
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
-    // Restore scaling layout
+    // Restore preview scaling
     if (window.autoFitCanvas) {
       window.autoFitCanvas();
     }
@@ -271,10 +413,7 @@ window.exportToPdf = function() {
 // Native Browser Printing Trigger
 window.printDocument = function() {
   if (!window.quill) return;
-  const previewBody = document.getElementById('letterhead-preview-body');
-  if (previewBody) {
-    previewBody.innerHTML = window.quill.root.innerHTML;
-  }
+  window.paginateDocument(window.quill.root.innerHTML);
   window.print();
 };
 
@@ -301,18 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load Saved Page Margins from localStorage
-  const savedMargins = localStorage.getItem('trescon_letterhead_margins') || 'normal';
-  const sheet = document.getElementById('letterhead-sheet');
-  const marginsSelector = document.getElementById('margins-preset');
-  if (sheet) {
-    sheet.classList.remove('margins-normal', 'margins-compact', 'margins-wide');
-    sheet.classList.add(`margins-${savedMargins}`);
-  }
-  if (marginsSelector) {
-    marginsSelector.value = savedMargins;
-  }
-
   // Initialize Quill Editor inside the plain Compose workspace card
   window.quill = null;
   const editorComposeContainer = document.getElementById('quill-editor-compose');
@@ -333,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Move Quill Toolbar to the Top Navigation Bar Toolbar
     const qlToolbar = editorComposeContainer.parentElement.querySelector('.ql-toolbar');
     const topToolbarContainer = document.getElementById('editor-top-toolbar');
     if (qlToolbar && topToolbarContainer) {
@@ -386,36 +512,38 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateFooter();
   window.toggleWatermark();
 
-  // Symmetrical Viewport Auto-Fit Scaling Engine (Runs in Preview view only)
+  // Symmetrical Viewport Auto-Fit Scaling Engine (Supports multi-page stacking)
   function autoFitCanvas() {
     const previewArea = document.querySelector('.preview-area');
     const paperContainer = document.querySelector('.paper-container');
-    const sheet = document.getElementById('letterhead-sheet');
+    const sheets = document.querySelectorAll('.a4-sheet');
     const previewView = document.getElementById('preview-workspace');
 
-    if (!previewArea || !paperContainer || !sheet || previewView.style.display === 'none') return;
+    if (!previewArea || !paperContainer || sheets.length === 0 || previewView.style.display === 'none') return;
 
-    sheet.style.transform = 'none';
-
-    const sidebar = document.getElementById('admin-sidebar');
-    const sidebarWidth = (isAdmin && sidebar && sidebar.style.display !== 'none' && sidebar.style.marginLeft === '0px') ? 300 : 0;
-    
+    // Symmetrical page padding buffer calculation (adjusting for visible admin sidebar if active)
     const containerWidth = Math.max(previewArea.clientWidth - 48, 280);
     const containerHeight = Math.max(previewArea.clientHeight - 52, 350);
 
     const sheetWidth = 794;
     const sheetHeight = 1123;
 
-    const scaleX = containerWidth / sheetWidth;
-    const scaleY = containerHeight / sheetHeight;
-    const scale = Math.min(scaleX, scaleY, 1.0);
+    const scale = Math.min(containerWidth / sheetWidth, containerHeight / sheetHeight, 1.0);
 
-    sheet.style.transform = `scale(${scale})`;
-    sheet.style.transformOrigin = 'top center';
+    let totalScaledHeight = 0;
+    sheets.forEach(sheet => {
+      sheet.style.transform = `scale(${scale})`;
+      sheet.style.transformOrigin = 'top center';
+      sheet.style.margin = '0 auto 40px auto';
+      totalScaledHeight += sheet.offsetHeight * scale + 40; // account for margin-bottom gap
+    });
 
-    paperContainer.style.height = `${sheet.offsetHeight * scale}px`;
+    paperContainer.style.height = `${totalScaledHeight}px`;
     paperContainer.style.width = `${sheetWidth * scale}px`;
     paperContainer.style.margin = 'auto';
+    paperContainer.style.display = 'flex';
+    paperContainer.style.flexDirection = 'column';
+    paperContainer.style.alignItems = 'center';
   }
 
   window.autoFitCanvas = autoFitCanvas;
