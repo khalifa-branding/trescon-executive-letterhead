@@ -63,6 +63,35 @@ window.updateFooter = function() {
   if (webElem) webElem.textContent = data.web;
 };
 
+// Real-time A4 Page Overflow Verification
+window.checkOverflow = function() {
+  const editor = document.querySelector('.ql-editor');
+  const container = document.getElementById('quill-editor-canvas');
+  if (!editor || !container) return;
+  
+  // Available height verification
+  const isOverflowing = editor.scrollHeight > container.clientHeight;
+  
+  let warningBanner = document.getElementById('overflow-warning');
+  if (isOverflowing) {
+    if (!warningBanner) {
+      warningBanner = document.createElement('div');
+      warningBanner.id = 'overflow-warning';
+      warningBanner.className = 'no-print';
+      warningBanner.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background-color: #ef4444; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; z-index: 1000; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 8px; pointer-events: none;';
+      warningBanner.innerHTML = `
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Warning: Content exceeds A4 page height! Please shorten text to fit on one page.
+      `;
+      document.body.appendChild(warningBanner);
+    }
+  } else {
+    if (warningBanner) {
+      warningBanner.remove();
+    }
+  }
+};
+
 // Update Sheet Margin Styles (Admin Setting)
 window.updateMargins = function() {
   const selectElem = document.getElementById('margins-preset');
@@ -77,6 +106,12 @@ window.updateMargins = function() {
   
   // Persist in localStorage so users/writers get the admin margin layout by default
   localStorage.setItem('trescon_letterhead_margins', selectedValue);
+  
+  // Verify overflow immediately after margin adjustment
+  if (window.checkOverflow) window.checkOverflow();
+  
+  // Re-scale container
+  if (window.autoFitCanvas) window.autoFitCanvas();
 };
 
 // Toggle Watermark Overlay (Admin Setting)
@@ -106,6 +141,9 @@ window.togglePreviewMode = function() {
     window.quill.enable(true); // set editor back to editable
     if (btnText) btnText.textContent = "Preview";
   }
+  
+  // Update overflow state after toggling editor modes
+  if (window.checkOverflow) window.checkOverflow();
 };
 
 // Inject Signature Preset Block at Cursor or End of Document
@@ -294,6 +332,12 @@ document.addEventListener('DOMContentLoaded', () => {
       <p>Founder & Chairman</p>
       <p>Trescon Global Business Solutions Pvt. Ltd.</p>
     `;
+
+    // Verify overflow on load and hook inside Quill text-change listener
+    if (window.checkOverflow) {
+      window.checkOverflow();
+      window.quill.on('text-change', window.checkOverflow);
+    }
   }
 
   // Bind Office Location Preset Selector

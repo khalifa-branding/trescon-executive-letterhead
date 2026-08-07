@@ -528,9 +528,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .a4-sheet {
     width: 100% !important;
     max-width: 210mm !important;
+    height: 297mm !important;
     min-height: 297mm !important;
-    height: auto !important;
-    max-height: none !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
     background-color: #ffffff !important;
     color: var(--trescon-charcoal) !important;
     padding: 7mm 10mm 8mm 10mm !important;
