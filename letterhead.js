@@ -137,10 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
       sidebarToolbarContainer.appendChild(qlToolbar);
     }
 
-    // Populate Initial Letter Template
     window.quill.root.innerHTML = `
       <p><strong>To,</strong></p>
-      <p><strong>Mr. Alex Turner</strong><br>Chief Executive Officer<br>Apex Global Innovations Ltd.<br>Bengaluru, Karnataka</p>
+      <p><strong>Mr. Alex Turner</strong></p>
+      <p>Chief Executive Officer</p>
+      <p>Apex Global Innovations Ltd.</p>
+      <p>Bengaluru, Karnataka</p>
       <p><br></p>
       <p><strong>Subject: Formal Proposal & Corporate Partnership Engagement</strong></p>
       <p><br></p>
@@ -151,7 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <p><br></p>
       <p>Warm regards,</p>
       <p><br></p>
-      <p><strong>Mohammed Saleem</strong><br>Founder & Chairman<br>Trescon Global Business Solutions Pvt. Ltd.</p>
+      <p><strong>Mohammed Saleem</strong></p>
+      <p>Founder & Chairman</p>
+      <p>Trescon Global Business Solutions Pvt. Ltd.</p>
     `;
   }
 
@@ -189,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sheet.style.transform = `scale(${scale})`;
     sheet.style.transformOrigin = 'top center';
 
-    paperContainer.style.height = `${sheetHeight * scale}px`;
+    paperContainer.style.height = `${sheet.offsetHeight * scale}px`;
     paperContainer.style.width = `${sheetWidth * scale}px`;
     paperContainer.style.margin = 'auto';
   }
