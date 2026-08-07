@@ -178,6 +178,17 @@ window.createNewA4Sheet = function(pageNumber) {
   return sheet;
 };
 
+// Helper to calculate actual compiled content height inside a page body
+function getContentHeight(body) {
+  let height = 0;
+  for (const child of body.children) {
+    height += child.offsetHeight;
+    const style = window.getComputedStyle(child);
+    height += parseFloat(style.marginTop || 0) + parseFloat(style.marginBottom || 0);
+  }
+  return height;
+}
+
 // Dynamic Pagination Algorithm (Flows HTML block elements across A4 sheets)
 window.paginateDocument = function(htmlContent) {
   const wrapper = document.getElementById('sheets-wrapper');
@@ -205,8 +216,8 @@ window.paginateDocument = function(htmlContent) {
     const clone = el.cloneNode(true);
     currentBody.appendChild(clone);
 
-    // If current element height overflows page height (scrollHeight measured correctly on visible DOM elements)
-    if (currentBody.scrollHeight > MAX_BODY_HEIGHT) {
+    // If current element height overflows page height (scrollHeight helper measures child elements accurately)
+    if (getContentHeight(currentBody) > MAX_BODY_HEIGHT) {
       
       // If it's a list (UL/OL), split the list items across pages
       if (clone.tagName === 'UL' || clone.tagName === 'OL') {
@@ -222,7 +233,7 @@ window.paginateDocument = function(htmlContent) {
           const itemClone = item.cloneNode(true);
           listClone.appendChild(itemClone);
 
-          if (currentBody.scrollHeight > MAX_BODY_HEIGHT) {
+          if (getContentHeight(currentBody) > MAX_BODY_HEIGHT) {
             itemClone.remove(); // remove overflowing item
 
             if (listClone.children.length === 0) {
