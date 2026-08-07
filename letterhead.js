@@ -166,7 +166,7 @@ window.createNewA4Sheet = function(pageNumber) {
           ${inlineAddr}
         </p>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #dce3e6 !important; margin-top: 6px !important; padding-top: 4px !important; box-sizing: border-box;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px !important; padding-top: 4px !important; box-sizing: border-box;">
         <p class="footer-disclaimer" style="font-size: 10px !important; color: #64748b !important; line-height: 1.15 !important; margin: 0; padding-bottom: 2px; flex: 1;">
           <strong>Disclaimer:</strong> The information shared by Trescon is confidential and intended solely for the recipient. It may not be copied, distributed, or relied upon without prior written consent. Trescon makes no warranties regarding the accuracy or completeness of the content and accepts no liability for any loss arising from its use. &copy; 2025 Trescon. All rights reserved.
         </p>
